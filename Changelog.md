@@ -1,5 +1,4 @@
 # Changelog v1.0
 
 ## Additions
-
-## Changes
+- Sleeping now causes furnaces to process items as if time had passed normally
