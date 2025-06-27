@@ -1,4 +1,4 @@
-# Changelog v1.0
+# Changelog v1.1
 
 ## Additions
-- Sleeping now causes furnaces to process items as if time had passed normally
+- Sleeping now causes crops to grow as if time had passed normally

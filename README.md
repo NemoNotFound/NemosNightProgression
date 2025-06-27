@@ -8,7 +8,7 @@ When you sleep, the world progresses naturally - just like time skipped forward:
 
 - **Sleeping** simulates the full passage of time until morning
 - **Furnaces** smelt items as if the time had passed normally
-- **Crops** grow by the amount of time skipped (WIP)
+- **Crops** grow by the amount of time skipped
 
 For full details check out the [wiki](https://github.com/NemoNotFound/NemosNightProgression/wiki).
 <br><br>

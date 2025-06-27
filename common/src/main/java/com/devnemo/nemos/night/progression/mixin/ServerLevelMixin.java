@@ -4,11 +4,15 @@ import com.devnemo.nemos.night.progression.interfaces.IServerLevelHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.WritableLevelData;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -19,6 +23,9 @@ import java.util.function.BooleanSupplier;
 @Mixin(ServerLevel.class)
 public abstract class ServerLevelMixin extends Level implements IServerLevelHelper {
 
+    @Shadow public abstract ServerLevel getLevel();
+
+    @Shadow @Final private MinecraftServer server;
     @Unique
     private boolean nemosNightProgression$shouldHandleNightProgression = false;
     @Unique
@@ -32,15 +39,20 @@ public abstract class ServerLevelMixin extends Level implements IServerLevelHelp
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;setDayTime(J)V"))
     private void tick(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
-        long j = this.getDayTime() + 24000L;
+        var j = this.getDayTime() + 24000L;
 
         nemosNightProgression$setShouldHandleNightProgression(true);
         nemosNightProgression$setBeforeSleepTime(getDayTime());
         nemosNightProgression$setAfterSleepTime(j - j % 24000L);
+
+        var ticksSlept = nemosNightProgression$afterSleepTime - nemosNightProgression$beforeSleepTime;
+
+        this.getLevel().getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(3 * (int) ticksSlept, this.server);
     }
 
     @Inject(method = "tick", at = @At(value = "TAIL"))
     private void tickAtEnd(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
+        this.getLevel().getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(3, this.server);
         nemosNightProgression$setShouldHandleNightProgression(false);
     }
 
