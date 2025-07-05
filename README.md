@@ -3,12 +3,11 @@
 
 # Description
 
-**Nemo's Night Progression** enhances your sleeping experience in Minecraft.    
-When you sleep, the world progresses naturally - just like time skipped forward:
+With **Nemo's Night Progression**, the world keeps progressing while you sleep.    
+Sleeping no longer just skips the night - instead, it simulates the time that would have passed:
 
-- **Sleeping** simulates the full passage of time until morning
-- **Furnaces** smelt items as if the time had passed normally
-- **Crops** grow by the amount of time skipped
+- **Furnaces** continue smelting as if the night had passed in real-time
+- **Crops & Trees** grow by the amount of time skipped
 
 For full details check out the [wiki](https://github.com/NemoNotFound/NemosNightProgression/wiki).
 <br><br>
