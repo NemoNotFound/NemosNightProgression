@@ -16,10 +16,10 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-          "com.devnemo.nemos.night.progression.FabricNemosNightProgression"
+          "com.nemonotfound.nemos.night.progression.FabricNemosNightProgression"
         ],
         "fabric-datagen": [
-          "com.devnemo.nemos.night.progression.DataGenerator"
+          "com.nemonotfound.nemos.night.progression.DataGenerator"
         ]
     },
     "mixins": [
