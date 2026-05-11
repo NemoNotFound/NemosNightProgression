@@ -37,13 +37,13 @@ public abstract class ServerLevelMixin extends Level implements IServerLevelHelp
         super(levelData, dimension, registryAccess, dimensionTypeRegistration, isClientSide, isDebug, biomeZoomSeed, maxChainedNeighborUpdates);
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;setDayTime(J)V"))
-    private void tick(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
-        var j = this.getDayTime() + 24000L;
+    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/clock/ServerClockManager;moveToTimeMarker(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceKey;)Z"))
+    private void tick(CallbackInfo ci) {
+        var skippedTime = this.getGameTime() + 24000L;
 
         nemosNightProgression$setShouldHandleNightProgression(true);
-        nemosNightProgression$setBeforeSleepTime(getDayTime());
-        nemosNightProgression$setAfterSleepTime(j - j % 24000L);
+        nemosNightProgression$setBeforeSleepTime(getGameTime());
+        nemosNightProgression$setAfterSleepTime(skippedTime - skippedTime % 24000L);
 
         var ticksSlept = nemosNightProgression$afterSleepTime - nemosNightProgression$beforeSleepTime;
 

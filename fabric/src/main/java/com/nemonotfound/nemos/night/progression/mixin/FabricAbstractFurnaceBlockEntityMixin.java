@@ -18,20 +18,27 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
-import static net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.burn;
-
 //TODO: Refactor
 @Mixin(AbstractFurnaceBlockEntity.class)
 public abstract class FabricAbstractFurnaceBlockEntityMixin implements IFurnaceHelper {
 
     @Shadow
-    int litTimeRemaining;
+    private int litTimeRemaining;
     @Shadow
-    int cookingTotalTime;
+    private int cookingTotalTime;
 
     @Shadow protected NonNullList<ItemStack> items;
 
     @Shadow protected abstract int getBurnDuration(FuelValues fuelValues, ItemStack stack);
+
+    @Shadow
+    private static boolean canBurn(NonNullList<ItemStack> items, int maxStackSize, ItemStack burnResult) {
+        return false;
+    }
+
+    @Shadow
+    private static void burn(NonNullList<ItemStack> items, ItemStack inputItemStack, ItemStack result) {
+    }
 
     @Definition(id = "furnace", local = @Local(argsOnly = true, type = AbstractFurnaceBlockEntity.class))
     @Definition(id = "cookingTimer", field = "Lnet/minecraft/world/level/block/entity/AbstractFurnaceBlockEntity;cookingTimer:I")
@@ -41,9 +48,9 @@ public abstract class FabricAbstractFurnaceBlockEntityMixin implements IFurnaceH
             int original,
             @Local(argsOnly = true) ServerLevel serverLevel,
             @Local(argsOnly = true) AbstractFurnaceBlockEntity furnace,
-            @Local RecipeHolder<? extends AbstractCookingRecipe> recipeHolder,
-            @Local SingleRecipeInput singleRecipeInput,
-            @Local(ordinal = 1) boolean flag
+            @Local(name = "recipe") RecipeHolder<? extends AbstractCookingRecipe> recipeHolder,
+            @Local(name = "input") SingleRecipeInput singleRecipeInput,
+            @Local(name = "isLit") boolean flag
     ) {
         var furnaceHelper = ((IFurnaceHelper) furnace);
         var serverLevelHelper = (IServerLevelHelper) serverLevel;
@@ -66,7 +73,8 @@ public abstract class FabricAbstractFurnaceBlockEntityMixin implements IFurnaceH
             updatedCookingTimer -= furnaceHelper.nemosNightProgression$getCookingTotalTime();
             progressedTicks += furnaceHelper.nemosNightProgression$getCookingTotalTime();
 
-            if (burn(serverLevel.registryAccess(), recipeHolder, singleRecipeInput, furnaceHelper.nemosNightProgression$getItems(), furnace.getMaxStackSize())) {
+            if (canBurn(furnaceHelper.nemosNightProgression$getItems(), furnace.getMaxStackSize(), recipeHolder.value().assemble(singleRecipeInput))) {
+                burn(furnaceHelper.nemosNightProgression$getItems(), singleRecipeInput.getItem(0), recipeHolder.value().assemble(singleRecipeInput));
                 furnace.setRecipeUsed(recipeHolder);
             }
 
