@@ -81,4 +81,11 @@ modrinth {
         required.project("fabric-api")
     }
 }
+
 tasks.modrinth.dependsOn(tasks.jar)
+
+tasks.register('publishAll') {
+    group = 'publishing'
+    description = 'Uploads the current release to CurseForge and Modrinth.'
+    dependsOn tasks.named('publishCurseForge'), tasks.named('modrinth')
+}

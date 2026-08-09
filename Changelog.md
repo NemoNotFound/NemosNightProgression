@@ -1,4 +1,4 @@
-# Changelog v1.1
+# Changelog v1.2
 
-## Additions
-- Sleeping now causes crops to grow as if time had passed normally
+## Fixes
+- Fixed possible duping bug in furnace

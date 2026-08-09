@@ -1,5 +1,7 @@
 package com.nemonotfound.nemos.night.progression.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.nemonotfound.nemos.night.progression.interfaces.IServerLevelHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
@@ -10,6 +12,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.storage.WritableLevelData;
+import net.minecraft.world.clock.ClockTimeMarker;
+import net.minecraft.world.clock.ServerClockManager;
+import net.minecraft.world.clock.WorldClock;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,27 +37,62 @@ public abstract class ServerLevelMixin extends Level implements IServerLevelHelp
     private long nemosNightProgression$beforeSleepTime = 0;
     @Unique
     private long nemosNightProgression$afterSleepTime = 0;
+    @Unique
+    private int nemosNightProgression$previousRandomTickSpeed;
 
     protected ServerLevelMixin(WritableLevelData levelData, ResourceKey<Level> dimension, RegistryAccess registryAccess, Holder<DimensionType> dimensionTypeRegistration, boolean isClientSide, boolean isDebug, long biomeZoomSeed, int maxChainedNeighborUpdates) {
         super(levelData, dimension, registryAccess, dimensionTypeRegistration, isClientSide, isDebug, biomeZoomSeed, maxChainedNeighborUpdates);
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/clock/ServerClockManager;moveToTimeMarker(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceKey;)Z"))
-    private void tick(CallbackInfo ci) {
-        var skippedTime = this.getGameTime() + 24000L;
+    @WrapOperation(
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/clock/ServerClockManager;moveToTimeMarker(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceKey;)Z"
+            )
+    )
+    private boolean nemosNightProgression$captureSkippedTime(
+            ServerClockManager clockManager,
+            Holder<WorldClock> clock,
+            ResourceKey<ClockTimeMarker> marker,
+            Operation<Boolean> original
+    ) {
+        var beforeSleepTime = clockManager.getTotalTicks(clock);
+        var movedToMarker = original.call(clockManager, clock, marker);
+        var afterSleepTime = clockManager.getTotalTicks(clock);
+        var skippedTicks = afterSleepTime - beforeSleepTime;
 
+        if (!movedToMarker || skippedTicks <= 0) {
+            return movedToMarker;
+        }
+
+        nemosNightProgression$setBeforeSleepTime(beforeSleepTime);
+        nemosNightProgression$setAfterSleepTime(afterSleepTime);
         nemosNightProgression$setShouldHandleNightProgression(true);
-        nemosNightProgression$setBeforeSleepTime(getGameTime());
-        nemosNightProgression$setAfterSleepTime(skippedTime - skippedTime % 24000L);
 
-        var ticksSlept = nemosNightProgression$afterSleepTime - nemosNightProgression$beforeSleepTime;
+        var gameRules = getLevel().getGameRules();
+        nemosNightProgression$previousRandomTickSpeed = gameRules.get(GameRules.RANDOM_TICK_SPEED);
+        var acceleratedRandomTickSpeed = Math.clamp(
+                (long) nemosNightProgression$previousRandomTickSpeed * skippedTicks,
+                0L,
+                Integer.MAX_VALUE
+        );
+        gameRules.set(GameRules.RANDOM_TICK_SPEED, (int) acceleratedRandomTickSpeed, this.server);
 
-        this.getLevel().getGameRules().set(GameRules.RANDOM_TICK_SPEED, 3 * (int) ticksSlept, this.server);
+        return movedToMarker;
     }
 
     @Inject(method = "tick", at = @At(value = "TAIL"))
     private void tickAtEnd(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
-        this.getLevel().getGameRules().set(GameRules.RANDOM_TICK_SPEED, 3, this.server);
+        if (!nemosNightProgression$shouldHandleNightProgression()) {
+            return;
+        }
+
+        getLevel().getGameRules().set(
+                GameRules.RANDOM_TICK_SPEED,
+                nemosNightProgression$previousRandomTickSpeed,
+                this.server
+        );
         nemosNightProgression$setShouldHandleNightProgression(false);
     }
 
