@@ -7,6 +7,7 @@ Sleeping no longer just skips the night - instead, it simulates the time that wo
 
 - **Furnaces** continue smelting as if the night had passed in real-time
 - **Crops & Trees** grow by the amount of time skipped
+- **Baby mobs** grow and mob breeding cooldowns progress by the amount of time skipped
 
 For more details check out the [wiki](https://wiki.nemonotfound.com/projects/minecraft-mods/nemos-night-progression/general).
 

@@ -1,4 +1,4 @@
-# Changelog v1.2
+# Changelog v1.3
 
-## Fixes
-- Fixed possible duping bug in furnace
+## Changes
+- Baby mobs simulate skipped time now

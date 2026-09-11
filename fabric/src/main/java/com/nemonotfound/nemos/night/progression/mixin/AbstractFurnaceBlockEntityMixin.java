@@ -19,13 +19,13 @@ public abstract class AbstractFurnaceBlockEntityMixin {
 
     @Inject(method = "serverTick", at = @At("HEAD"), cancellable = true)
     private static void nemosNightProgression$simulateSkippedTicks(
-            ServerLevel serverLevel,
-            BlockPos blockPos,
-            BlockState blockState,
-            AbstractFurnaceBlockEntity furnace,
+            ServerLevel level,
+            BlockPos pos,
+            BlockState state,
+            AbstractFurnaceBlockEntity entity,
             CallbackInfo callbackInfo
     ) {
-        var serverLevelHelper = (IServerLevelHelper) serverLevel;
+        var serverLevelHelper = (IServerLevelHelper) level;
 
         if (nemosNightProgression$simulatingSkippedTicks
                 || !serverLevelHelper.nemosNightProgression$shouldHandleNightProgression()) {
@@ -44,10 +44,10 @@ public abstract class AbstractFurnaceBlockEntityMixin {
         try {
             for (long tick = 0; tick < skippedTicks; tick++) {
                 AbstractFurnaceBlockEntity.serverTick(
-                        serverLevel,
-                        blockPos,
-                        serverLevel.getBlockState(blockPos),
-                        furnace
+                        level,
+                        pos,
+                        level.getBlockState(pos),
+                        entity
                 );
             }
         } finally {
