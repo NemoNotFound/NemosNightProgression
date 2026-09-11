@@ -1,4 +1,4 @@
-package com.nemonotfound.nemos.night.progression;
+package com.nemonotfound.nemos.night.progression.client;
 
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;

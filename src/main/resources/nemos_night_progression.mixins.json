@@ -2,10 +2,11 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.nemonotfound.nemos.night.progression.mixin",
-  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "AbstractFurnaceBlockEntityMixin"
+    "AbstractFurnaceBlockEntityMixin",
+    "AgeableMobMixin",
+    "ServerLevelMixin"
   ],
   "client": [],
   "server": [],
@@ -16,4 +17,3 @@
     "minVersion": "0.5.0-rc.2"
   }
 }
-  

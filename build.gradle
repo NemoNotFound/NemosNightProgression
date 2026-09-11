@@ -1,8 +1,115 @@
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
 plugins {
-    // see https://fabricmc.net/develop/ for new versions
-    id 'net.fabricmc.fabric-loom' version '1.17-SNAPSHOT' apply false
-    // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
-    id 'net.neoforged.moddev' version '2.0.141' apply false
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'maven-publish'
     id 'net.darkhax.curseforgegradle' version '1.1.27'
-    id "com.modrinth.minotaur" version "2.+"
+    id 'com.modrinth.minotaur' version '2.+'
+}
+
+version = project.minecraft_version + '-' + project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    include implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${project.mixin_extras_version}"))
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'minecraft_version', project.minecraft_version
+    inputs.property 'loader_version', project.loader_version
+    inputs.property 'java_version', project.java_version
+
+    filesMatching('fabric.mod.json') {
+        expand(
+                version: inputs.properties.version,
+                minecraft_version: inputs.properties.minecraft_version,
+                loader_version: inputs.properties.loader_version,
+                java_version: inputs.properties.java_version
+        )
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 25
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+    from('LICENSE') {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+fabricApi {
+    configureDataGeneration() {
+        client = true
+        modId = project.mod_id
+    }
+}
+
+tasks.register('publishCurseForge', TaskPublishCurseForge) {
+    dependsOn(tasks.jar)
+    apiToken = System.getenv('CURSEFORGE_TOKEN')
+
+    def projectId = findProperty('curseforge_project_id')
+    def mainFile = upload(projectId, tasks.jar.archiveFile)
+    mainFile.changelog = file('Changelog.md')
+    mainFile.displayName = findProperty('mod_name') + ' ' + findProperty('version')
+    mainFile.releaseType = 'release'
+    mainFile.addEnvironment('Server')
+    mainFile.addJavaVersion('Java 25')
+    mainFile.addRequirement('fabric-api')
+}
+
+modrinth {
+    token.set(System.getenv('MODRINTH_TOKEN'))
+    projectId.set(findProperty('modrinth_project_id'))
+    changelog.set(file('Changelog.md').text)
+    versionName.set(findProperty('mod_name') + ' ' + findProperty('version'))
+    versionType.set('release')
+    uploadFile.set(tasks.jar)
+    dependencies {
+        required.project('fabric-api')
+    }
+}
+
+tasks.modrinth.dependsOn(tasks.jar)
+
+tasks.register('publishAll') {
+    group = 'publishing'
+    description = 'Uploads the release to CurseForge and Modrinth.'
+    dependsOn tasks.named('publishCurseForge'), tasks.named('modrinth')
 }

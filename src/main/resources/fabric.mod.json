@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "nemos_night_progression",
+  "version": "${version}",
+  "name": "Nemo's Night Progression",
+  "description": "Sleeping now truly skips time. Furnaces smelt, crops and mobs grow, and the world progresses as if time had passed normally.",
+  "authors": [
+    "Nemo"
+  ],
+  "contact": {
+    "homepage": "https://nemonotfound.com",
+    "sources": "https://github.com/NemoNotFound/NemosNightProgression"
+  },
+  "license": "MIT",
+  "icon": "assets/nemos_night_progression/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.nemonotfound.nemos.night.progression.NemosNightProgression"
+    ],
+    "fabric-datagen": [
+      "com.nemonotfound.nemos.night.progression.client.DataGenerator"
+    ]
+  },
+  "mixins": [
+    "nemos_night_progression.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": ">=${minecraft_version}",
+    "java": ">=${java_version}"
+  }
+}
