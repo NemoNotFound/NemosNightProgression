@@ -108,7 +108,7 @@ modrinth {
 
 tasks.modrinth.dependsOn(tasks.jar)
 
-tasks.register('publishAll') {
+tasks.register('publishMod') {
     group = 'publishing'
     description = 'Uploads the release to CurseForge and Modrinth.'
     dependsOn tasks.named('publishCurseForge'), tasks.named('modrinth')
