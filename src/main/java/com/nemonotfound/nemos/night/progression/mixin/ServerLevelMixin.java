@@ -48,22 +48,22 @@ public abstract class ServerLevelMixin extends Level implements IServerLevelHelp
             method = "tick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/clock/ServerClockManager;moveToTimeMarker(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceKey;)Z"
+                    target = "Lnet/minecraft/world/clock/ServerClockManager;moveToTimeMarker(Lnet/minecraft/core/Holder;Lnet/minecraft/resources/ResourceKey;)Lnet/minecraft/world/clock/ServerClockManager$MoveResult;"
             )
     )
-    private boolean nemosNightProgression$captureSkippedTime(
+    private ServerClockManager.MoveResult nemosNightProgression$captureSkippedTime(
             ServerClockManager clockManager,
             Holder<WorldClock> clock,
             ResourceKey<ClockTimeMarker> marker,
-            Operation<Boolean> original
+            Operation<ServerClockManager.MoveResult> original
     ) {
-        var beforeSleepTime = clockManager.getTotalTicks(clock);
-        var movedToMarker = original.call(clockManager, clock, marker);
-        var afterSleepTime = clockManager.getTotalTicks(clock);
+        var beforeSleepTime = clockManager.getInstance(clock).totalTicks();
+        var moveResult = original.call(clockManager, clock, marker);
+        var afterSleepTime = clockManager.getInstance(clock).totalTicks();
         var skippedTicks = afterSleepTime - beforeSleepTime;
 
-        if (!movedToMarker || skippedTicks <= 0) {
-            return movedToMarker;
+        if (moveResult != ServerClockManager.MoveResult.MOVED || skippedTicks <= 0) {
+            return moveResult;
         }
 
         nemosNightProgression$setBeforeSleepTime(beforeSleepTime);
@@ -79,7 +79,7 @@ public abstract class ServerLevelMixin extends Level implements IServerLevelHelp
         );
         gameRules.set(GameRules.RANDOM_TICK_SPEED, (int) acceleratedRandomTickSpeed, this.server);
 
-        return movedToMarker;
+        return moveResult;
     }
 
     @Inject(method = "tick", at = @At(value = "TAIL"))
